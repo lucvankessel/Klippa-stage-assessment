@@ -1,3 +1,3 @@
-module github.com/lucvankessel/Klippa-stage-assessment
+module assessment
 
 go 1.19
