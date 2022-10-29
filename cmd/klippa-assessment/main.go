@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 )
 
 func main() {
@@ -57,7 +58,7 @@ func main() {
 
 		PrintResponse(bodyData, response.StatusCode)
 	} else {
-		// If debug is turned on
+		// If debug is turned on we load from an exampleResponse.json file so i dont waste credits.
 		file, _ := os.ReadFile("exampleResponse.json")
 		PrintResponse(file, 200)
 	}
@@ -103,7 +104,22 @@ func PrintResponse(bodyData []byte, statusCode int) {
 		var result200 structs.Result200
 		json.Unmarshal(bodyData, &result200)
 
-		fmt.Println("Data: ", result200.Data)
+		for k, v := range result200.Data {
+
+			if v == nil {
+				continue
+			}
+			// If we have a nested map we iterate through it.
+			if reflect.TypeOf(v).String() == "map[string]interface {}" {
+				
+				fmt.Printf("%[1]s: %[2]s \n", k, v)
+
+			} else if v != "" {
+				fmt.Printf("%[1]s: %[2]s \n", k, v )
+			}
+			
+		}
+		// fmt.Println("Data: ", result200.Data)
 		fmt.Println("Request ID: ", result200.Request_id)
 
 	} else if statusCode == 400 {
