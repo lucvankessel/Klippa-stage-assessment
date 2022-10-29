@@ -19,14 +19,9 @@ func main() {
 	ExtractionType := flag.String("textextraction", "fast", "what thype of text extraction you want to use, needs to be fast or full")
 	FilePath := flag.String("file", "[REQUIRED]", "a document or image file path")
 	SaveFile := flag.String("save", "filename", "name of how you want to save the result")
+	Debug := flag.Bool("debug", false, "enable the debugmode, this wont send any requests to the api and will work with a static json file in this folder")
 
 	flag.Parse()
-
-	// check if the file mentioned in the filepath exists
-	if _, err := os.Stat(string(*FilePath)); errors.Is(err, os.ErrNotExist) {
-		fmt.Println("This file does not exist: ", *FilePath)
-		os.Exit(0)
-	}
 
 	// create construct from the input flags.
 	requestconfig := new(structs.RequestConfig)
@@ -36,23 +31,36 @@ func main() {
 	requestconfig.FilePath = string(*FilePath)
 	requestconfig.SavefileName = string(*SaveFile)
 
-	// give the request config to the ParseDocument function, this will execute the api call.
-	response := klippaApi.ParseDocument(requestconfig)
+	if !*Debug {
+		// If debug is turned off
 
+		// check if the file mentioned in the filepath exists
+		if _, err := os.Stat(string(*FilePath)); errors.Is(err, os.ErrNotExist) {
+			fmt.Println("This file does not exist: ", *FilePath)
+			os.Exit(0)
+		}
 
-	// TODO: voor wat voor reden kan ik niet 2 keer op dezelfde response een readall doen, de laatste van de 2 zal een fout krijgen bij het lezen (namelijk dat deze leeg is.)
-	bodyData, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Save ReadAll error: ", err)
-		os.Exit(0)
+		// give the request config to the ParseDocument function, this will execute the api call.
+		response := klippaApi.ParseDocument(requestconfig)
+
+		// TODO: voor wat voor reden kan ik niet 2 keer op dezelfde response een readall doen, de laatste van de 2 zal een fout krijgen bij het lezen (namelijk dat deze leeg is.)
+		bodyData, err := io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println("Save ReadAll error: ", err)
+			os.Exit(0)
+		}
+
+		// check if the given savefile name isnt the default one. if it is different we save it to a file.
+		if requestconfig.SavefileName != "filename" {
+			SaveResponse(bodyData, *requestconfig)
+		}
+
+		PrintResponse(bodyData, response.StatusCode)
+	} else {
+		// If debug is turned on
+		file, _ := os.ReadFile("exampleResponse.json")
+		PrintResponse(file, 200)
 	}
-
-	// check if the given savefile name isnt the default one. if it is different we save it to a file.
-	if requestconfig.SavefileName != "filename" {
-		SaveResponse(bodyData, *requestconfig)
-	}
-	
-	PrintResponse(bodyData, response.StatusCode)
 
 }
 
