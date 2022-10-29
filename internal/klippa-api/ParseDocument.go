@@ -12,7 +12,7 @@ import (
 )
 
 // Calls the klippa parsedocument api
-func ParseDocument( requestconfig *structs.RequestConfig ) (*http.Response, error) {
+func ParseDocument( requestconfig *structs.RequestConfig ) (*http.Response) {
 
 	// Opens the provided file that needs parsing
 	file, _ := os.Open(requestconfig.FilePath)
@@ -21,12 +21,13 @@ func ParseDocument( requestconfig *structs.RequestConfig ) (*http.Response, erro
 	// Writing all the body elements of the request.
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("document", filepath.Base(file.Name()))
+	part, err := writer.CreateFormFile("document", filepath.Base(file.Name()))
 	io.Copy(part, file)
-	extraction, err := writer.CreateFormField("pdf_text_extraction")
 	if err != nil {
-		return nil, err
+		fmt.Println("ParseDoc createFormField error: ", err)
+		os.Exit(0)
 	}
+	extraction, _ := writer.CreateFormField("pdf_text_extraction")
 	extraction.Write([]byte(requestconfig.ExtractionType))
 	writer.Close()
 
@@ -41,9 +42,9 @@ func ParseDocument( requestconfig *structs.RequestConfig ) (*http.Response, erro
 	// Execute the api call.
     resp, err := http.DefaultClient.Do(r)
     if err != nil {
-        fmt.Println(err)
+        fmt.Println("ParseDoc api execution error: ", err)
 		os.Exit(0)
     }
 
-	return resp, err
+	return resp
 }

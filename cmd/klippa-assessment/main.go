@@ -3,13 +3,11 @@ package main
 import (
 	"assessment/internal/klippa-api"
 	"assessment/internal/structs"
-	// "encoding/json"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
-	// "net/http/httputil"
 	"os"
 )
 
@@ -39,30 +37,71 @@ func main() {
 	requestconfig.SavefileName = string(*SaveFile)
 
 	// give the request config to the ParseDocument function, this will execute the api call.
-	response, err := klippaApi.ParseDocument(requestconfig)
+	response := klippaApi.ParseDocument(requestconfig)
+
+
+	// TODO: voor wat voor reden kan ik niet 2 keer op dezelfde response een readall doen, de laatste van de 2 zal een fout krijgen bij het lezen (namelijk dat deze leeg is.)
+	bodyData, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Save ReadAll error: ", err)
+		os.Exit(0)
+	}
 
 	// check if the given savefile name isnt the default one. if it is different we save it to a file.
 	if requestconfig.SavefileName != "filename" {
-		SaveResponse(response, *requestconfig)
+		SaveResponse(bodyData, *requestconfig)
 	}
-
-	// print the response to the console.
-	fmt.Println(err)
+	
+	PrintResponse(bodyData, response.StatusCode)
 
 }
+
 
 // saves the response body of a request response to a given filename.
-func SaveResponse(response *http.Response, requestconfig structs.RequestConfig) {
+func SaveResponse(bodyData []byte, requestconfig structs.RequestConfig) {
 	filename := requestconfig.SavefileName + ".json"
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println(err)
+	
+	var jsonmap map[string]*json.RawMessage
+	if err := json.Unmarshal(bodyData, &jsonmap); err != nil {
+		fmt.Println("JsonUnmarshal error: ", err)
 		os.Exit(0)
 	}
-	_ = os.WriteFile(filename, body, 0644)
+
+	var jsonIndent []byte
+	jsonIndent, err := json.MarshalIndent(jsonmap, "", " "); 
+	if err != nil {
+		fmt.Println("JsonIndent Error: ", err)
+		os.Exit(0)
+	}
+
+	_ = os.WriteFile(filename, jsonIndent, 0644)
 }
 
+
 // This function will pretty print the result in the console.
-func PrintResponse(response *http.Response) {
+func PrintResponse(bodyData []byte, statusCode int) {
+
+	var jsonmap map[string]interface{}
+	if err := json.Unmarshal(bodyData, &jsonmap); err != nil {
+		fmt.Println("print JsonUnmarshal error: ", err)
+		os.Exit(0)
+	}
+
+	fmt.Println("=== PARSE RESULTS ===")
+	fmt.Println("Status: ",	jsonmap["result"])
+
+	// Because i want to give the output some styling i decided to manually print the results instead of using marshalindent.
+	if statusCode == 200 {
+
+		fmt.Println("= Raw Data =")
+		fmt.Println(jsonmap["data"])
+
+	} else if statusCode == 400 {
+
+	} else if statusCode == 500 {
+		fmt.Println("Error code: ", jsonmap["code"])
+		fmt.Println("Error message: ", jsonmap["message"])
+		fmt.Println("Request id: ", jsonmap["request_id"])
+	}
 
 }
