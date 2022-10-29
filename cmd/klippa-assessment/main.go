@@ -92,16 +92,38 @@ func PrintResponse(bodyData []byte, statusCode int) {
 
 	// Because i want to give the output some styling i decided to manually print the results instead of using marshalindent.
 	if statusCode == 200 {
+		var result200 structs.Result200
+		json.Unmarshal(bodyData, &result200)
 
-		fmt.Println("= Raw Data =")
-		fmt.Println(jsonmap["data"])
+		fmt.Println("Data: ", result200.Data)
+		fmt.Println("Request ID: ", result200.Request_id)
 
 	} else if statusCode == 400 {
+		var result400 structs.Result400
+		json.Unmarshal(bodyData, &result400)
+
+		fmt.Println("Error code: ", result400.Code)
+
+		fmt.Println("=Errors=")
+		for i, error := range result400.Errors {
+			fmt.Println("Error ", i)
+			fmt.Println("Code: ", error.Code)
+			fmt.Println("Message: ", error.Message)
+			fmt.Println("Request id: ", error.Request_id)
+			fmt.Println("Result: ", error.Result)
+		}
+
+		fmt.Println("Request id: ", result400.Request_id)
+
 
 	} else if statusCode == 500 {
-		fmt.Println("Error code: ", jsonmap["code"])
-		fmt.Println("Error message: ", jsonmap["message"])
-		fmt.Println("Request id: ", jsonmap["request_id"])
+		var result500 structs.Result500
+		json.Unmarshal(bodyData, &result500)
+
+		fmt.Println("Error code: ", result500.Code)
+		fmt.Println("Error message: ", result500.Message)
+		fmt.Println("Request id: ", result500.Request_id)
+
 	}
 
 }
