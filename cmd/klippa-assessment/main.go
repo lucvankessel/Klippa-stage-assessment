@@ -24,6 +24,16 @@ func main() {
 
 	flag.Parse()
 
+	// check for things wrong with the flags
+	if string(*filepath) == "[REQUIRED]" {
+		fmt.Println("Please give a file to parse, use -file=[path/to/filename.extension] to do so.")
+		os.Exit(0)
+	}
+	if string(*apiKey) == "[REQUIRED]" {
+		fmt.Println("Please fill in a api key to use in the request, use -api=[apikey] to do so. ")
+		os.Exit(0)
+	}
+
 	// create construct from the input flags.
 	requestconfig := new(structs.RequestConfig)
 	requestconfig.ApiKey = string(*apiKey)
