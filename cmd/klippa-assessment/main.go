@@ -32,9 +32,13 @@ func main() {
 	requestconfig.FilePath = string(*filepath)
 	requestconfig.SavefileName = string(*savefile)
 
-	if !*debug {
-		// If debug is turned off
-
+	if *debug {
+		// If debug is turned on we load from an exampleResponse.json, this is done to not use credits while testing the output functionality of this program.
+		file, _ := os.ReadFile("exampleResponse.json")
+		ROH.PrintResponse(file, 200, *fullOutput)
+	} else {
+		// if debug is turned off the program behaves like it should.
+	
 		// check if the file mentioned in the filepath exists
 		if _, err := os.Stat(string(*filepath)); errors.Is(err, os.ErrNotExist) {
 			fmt.Println("This file does not exist: ", *filepath)
@@ -57,10 +61,7 @@ func main() {
 		}
 
 		ROH.PrintResponse(bodyData, response.StatusCode, *fullOutput)
-	} else {
-		// If debug is turned on we load from an exampleResponse.json file so i dont waste credits.
-		file, _ := os.ReadFile("exampleResponse.json")
-		ROH.PrintResponse(file, 200, *fullOutput)
+
 	}
 
 }
