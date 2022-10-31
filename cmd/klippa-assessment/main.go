@@ -24,24 +24,6 @@ func main() {
 
 	flag.Parse()
 
-	// check for things wrong with the flags
-	if string(*filepath) == "[REQUIRED]" {
-		fmt.Println("Please give a file to parse, use -file=[path/to/filename.extension] to do so.")
-		os.Exit(0)
-	}
-	if string(*apiKey) == "[REQUIRED]" {
-		fmt.Println("Please fill in a api key to use in the request, use -api=[apikey] to do so. ")
-		os.Exit(0)
-	}
-
-	// create construct from the input flags.
-	requestconfig := new(structs.RequestConfig)
-	requestconfig.ApiKey = string(*apiKey)
-	requestconfig.Template = string(*template)
-	requestconfig.ExtractionType = string(*extractionType)
-	requestconfig.FilePath = string(*filepath)
-	requestconfig.SavefileName = string(*savefile)
-
 	if *debug {
 		// If debug is turned on we load from an exampleResponse.json, this is done to not use credits while testing the output functionality of this program.
 		file, _ := os.ReadFile("exampleResponse.json")
@@ -49,6 +31,24 @@ func main() {
 	} else {
 		// if debug is turned off the program behaves like it should.
 	
+		// check for things wrong with the flags
+		if string(*filepath) == "[REQUIRED]" {
+			fmt.Println("Please give a file to parse, use -file=[path/to/filename.extension] to do so.")
+			os.Exit(0)
+		}
+		if string(*apiKey) == "[REQUIRED]" {
+			fmt.Println("Please fill in a api key to use in the request, use -api=[apikey] to do so. ")
+			os.Exit(0)
+		}
+
+		// create construct from the input flags.
+		requestconfig := new(structs.RequestConfig)
+		requestconfig.ApiKey = string(*apiKey)
+		requestconfig.Template = string(*template)
+		requestconfig.ExtractionType = string(*extractionType)
+		requestconfig.FilePath = string(*filepath)
+		requestconfig.SavefileName = string(*savefile)
+
 		// check if the file mentioned in the filepath exists
 		if _, err := os.Stat(string(*filepath)); errors.Is(err, os.ErrNotExist) {
 			fmt.Println("This file does not exist: ", *filepath)

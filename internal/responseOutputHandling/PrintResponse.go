@@ -81,11 +81,13 @@ func PrintResponse(bodyData []byte, statusCode int, fulloutput bool) {
 
 		fmt.Println("=Errors=")
 		for i, error := range result400.Errors {
-			fmt.Println("Error ", i)
-			fmt.Println("Code: ", error.Code)
-			fmt.Println("Message: ", error.Message)
-			fmt.Println("Request id: ", error.Request_id)
-			fmt.Println("Result: ", error.Result)
+			fmt.Println("[")
+			fmt.Println(" Error ", i)
+			fmt.Println(" Code: ", error.Code)
+			fmt.Println(" Message: ", error.Message)
+			fmt.Println(" Request id: ", error.Request_id)
+			fmt.Println(" Result: ", error.Result)
+			fmt.Println("]")
 		}
 
 		fmt.Println("Request id: ", result400.Request_id)
