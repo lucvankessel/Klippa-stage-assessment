@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
+	"strings"
 )
 
 func main() {
@@ -86,6 +86,28 @@ func SaveResponse(bodyData []byte, requestconfig structs.RequestConfig) {
 	_ = os.WriteFile(filename, jsonIndent, 0644)
 }
 
+// Because in some cases i dont know how deep the responses can go i needed to make a function that figures that out for me and prints everything that way.
+func recursePrint(input map[string]interface{}, depth int) {
+
+	for key, value := range input {
+		// if there is no value i dont want to print it, for a cli output i see it as useless output.
+		if value == nil || value == "" || value == float64(0) || key == "raw_text" {
+			continue
+		}
+
+		tabsDivider := strings.Repeat("\t", depth-1)
+		tabsValues := strings.Repeat("\t", depth)
+		if rec, ok := value.(map[string]interface{}); ok {
+			divider := strings.Repeat("=", depth)
+			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsDivider)
+			recursePrint(rec, depth+1)
+		} else {
+			fmt.Printf("%[3]v %[1]s: %[2]v \n", key, value, tabsValues)
+		}
+
+	}
+
+}
 
 // This function will pretty print the result in the console.
 func PrintResponse(bodyData []byte, statusCode int) {
@@ -104,21 +126,24 @@ func PrintResponse(bodyData []byte, statusCode int) {
 		var result200 structs.Result200
 		json.Unmarshal(bodyData, &result200)
 
-		for k, v := range result200.Data {
+		recursePrint(result200.Data, 1)
 
-			if v == nil {
-				continue
-			}
-			// If we have a nested map we iterate through it.
-			if reflect.TypeOf(v).String() == "map[string]interface {}" {
+		// for k, v := range result200.Data {
+
+		// 	if v == nil {
+		// 		continue
+		// 	}
+		// 	// If we have a nested map we iterate through it.
 				
-				fmt.Printf("%[1]s: %[2]s \n", k, v)
+		// 	if key, value := v.(map[string]interface{}); value {
+		// 		for key, value := range key {
 
-			} else if v != "" {
-				fmt.Printf("%[1]s: %[2]s \n", k, v )
-			}
+		// 		}
+		// 	} else if v != "" {
+		// 		fmt.Printf("%[1]s: %[2]s \n", k, v )
+		// 	}
 			
-		}
+		// }
 		// fmt.Println("Data: ", result200.Data)
 		fmt.Println("Request ID: ", result200.Request_id)
 
