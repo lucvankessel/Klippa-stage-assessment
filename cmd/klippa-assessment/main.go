@@ -2,42 +2,42 @@ package main
 
 import (
 	"assessment/internal/klippa-api"
+	ROH "assessment/internal/responseOutputHandling"
 	"assessment/internal/structs"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 func main() {
 
 	// Initialize the flags, this is done through the flag package provided by GO
-	ApiKey := flag.String("api", "[REQUIRED]", "a api key")
-	Template := flag.String("template", "financial_full", "which default provided template to use")
-	ExtractionType := flag.String("textextraction", "fast", "what thype of text extraction you want to use, needs to be fast or full")
-	FilePath := flag.String("file", "[REQUIRED]", "a document or image file path")
-	SaveFile := flag.String("save", "filename", "name of how you want to save the result")
-	Debug := flag.Bool("debug", false, "enable the debugmode, this wont send any requests to the api and will work with a static json file in this folder")
+	apiKey := flag.String("api", "[REQUIRED]", "a api key")
+	template := flag.String("template", "financial_full", "which default provided template to use")
+	extractionType := flag.String("textextraction", "fast", "what thype of text extraction you want to use, needs to be fast or full")
+	filepath := flag.String("file", "[REQUIRED]", "a document or image file path")
+	savefile := flag.String("save", "filename", "name of how you want to save the result")
+	debug := flag.Bool("debug", false, "enable the debugmode, this wont send any requests to the api and will work with a static json file in this folder")
+	fullOutput := flag.Bool("fulloutput", false, "get the full output nicely formated, or have it only show the data that is filled in.")
 
 	flag.Parse()
 
 	// create construct from the input flags.
 	requestconfig := new(structs.RequestConfig)
-	requestconfig.ApiKey = string(*ApiKey)
-	requestconfig.Template = string(*Template)
-	requestconfig.ExtractionType = string(*ExtractionType)
-	requestconfig.FilePath = string(*FilePath)
-	requestconfig.SavefileName = string(*SaveFile)
+	requestconfig.ApiKey = string(*apiKey)
+	requestconfig.Template = string(*template)
+	requestconfig.ExtractionType = string(*extractionType)
+	requestconfig.FilePath = string(*filepath)
+	requestconfig.SavefileName = string(*savefile)
 
-	if !*Debug {
+	if !*debug {
 		// If debug is turned off
 
 		// check if the file mentioned in the filepath exists
-		if _, err := os.Stat(string(*FilePath)); errors.Is(err, os.ErrNotExist) {
-			fmt.Println("This file does not exist: ", *FilePath)
+		if _, err := os.Stat(string(*filepath)); errors.Is(err, os.ErrNotExist) {
+			fmt.Println("This file does not exist: ", *filepath)
 			os.Exit(0)
 		}
 
@@ -53,126 +53,14 @@ func main() {
 
 		// check if the given savefile name isnt the default one. if it is different we save it to a file.
 		if requestconfig.SavefileName != "filename" {
-			SaveResponse(bodyData, *requestconfig)
+			ROH.SaveResponse(bodyData, *requestconfig)
 		}
 
-		PrintResponse(bodyData, response.StatusCode)
+		ROH.PrintResponse(bodyData, response.StatusCode, *fullOutput)
 	} else {
 		// If debug is turned on we load from an exampleResponse.json file so i dont waste credits.
 		file, _ := os.ReadFile("exampleResponse.json")
-		PrintResponse(file, 200)
-	}
-
-}
-
-
-// saves the response body of a request response to a given filename.
-func SaveResponse(bodyData []byte, requestconfig structs.RequestConfig) {
-	filename := requestconfig.SavefileName + ".json"
-	
-	var jsonmap map[string]*json.RawMessage
-	if err := json.Unmarshal(bodyData, &jsonmap); err != nil {
-		fmt.Println("JsonUnmarshal error: ", err)
-		os.Exit(0)
-	}
-
-	var jsonIndent []byte
-	jsonIndent, err := json.MarshalIndent(jsonmap, "", " "); 
-	if err != nil {
-		fmt.Println("JsonIndent Error: ", err)
-		os.Exit(0)
-	}
-
-	_ = os.WriteFile(filename, jsonIndent, 0644)
-}
-
-// Because in some cases i dont know how deep the responses can go i needed to make a function that figures that out for me and prints everything that way.
-func recursePrint(input map[string]interface{}, depth int) {
-
-	for key, value := range input {
-		// if there is no value i dont want to print it, for a cli output i see it as useless output.
-		if value == nil || value == "" || value == float64(0) || key == "raw_text" {
-			continue
-		}
-
-		tabsDivider := strings.Repeat("\t", depth-1)
-		tabsValues := strings.Repeat("\t", depth)
-		if rec, ok := value.(map[string]interface{}); ok {
-			divider := strings.Repeat("=", depth)
-			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsDivider)
-			recursePrint(rec, depth+1)
-		} else {
-			fmt.Printf("%[3]v %[1]s: %[2]v \n", key, value, tabsValues)
-		}
-
-	}
-
-}
-
-// This function will pretty print the result in the console.
-func PrintResponse(bodyData []byte, statusCode int) {
-
-	var jsonmap map[string]interface{}
-	if err := json.Unmarshal(bodyData, &jsonmap); err != nil {
-		fmt.Println("print JsonUnmarshal error: ", err)
-		os.Exit(0)
-	}
-
-	fmt.Println("=== PARSE RESULTS ===")
-	fmt.Println("Status: ",	jsonmap["result"])
-
-	// Because i want to give the output some styling i decided to manually print the results instead of using marshalindent.
-	if statusCode == 200 {
-		var result200 structs.Result200
-		json.Unmarshal(bodyData, &result200)
-
-		recursePrint(result200.Data, 1)
-
-		// for k, v := range result200.Data {
-
-		// 	if v == nil {
-		// 		continue
-		// 	}
-		// 	// If we have a nested map we iterate through it.
-				
-		// 	if key, value := v.(map[string]interface{}); value {
-		// 		for key, value := range key {
-
-		// 		}
-		// 	} else if v != "" {
-		// 		fmt.Printf("%[1]s: %[2]s \n", k, v )
-		// 	}
-			
-		// }
-		// fmt.Println("Data: ", result200.Data)
-		fmt.Println("Request ID: ", result200.Request_id)
-
-	} else if statusCode == 400 {
-		var result400 structs.Result400
-		json.Unmarshal(bodyData, &result400)
-
-		fmt.Println("Error code: ", result400.Code)
-
-		fmt.Println("=Errors=")
-		for i, error := range result400.Errors {
-			fmt.Println("Error ", i)
-			fmt.Println("Code: ", error.Code)
-			fmt.Println("Message: ", error.Message)
-			fmt.Println("Request id: ", error.Request_id)
-			fmt.Println("Result: ", error.Result)
-		}
-
-		fmt.Println("Request id: ", result400.Request_id)
-
-
-	} else if statusCode == 500 {
-		var result500 structs.Result500
-		json.Unmarshal(bodyData, &result500)
-
-		fmt.Println("Error code: ", result500.Code)
-		fmt.Println("Error message: ", result500.Message)
-		fmt.Println("Request id: ", result500.Request_id)
-
+		ROH.PrintResponse(file, 200, *fullOutput)
 	}
 
 }
