@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -13,20 +14,39 @@ func recursePrint(input map[string]interface{}, depth int, fulloutput bool) {
 
 	for key, value := range input {
 		// if there is no value i dont want to print it, for a cli output i see it as useless output.
+
+		// we skip all values that are: nil, empty strings, 0 values and the raw_text value, seeing as this doesnt looks as nice in the console output.
+		// maybe only display once the full output so people still can see the whole output.
 		if !fulloutput {
 			if value == nil || value == "" || value == float64(0) || key == "raw_text" {
 				continue
 			}
+			// if the value is an empty array we continue
+			if reflect.TypeOf(value).String() == "[]interface {}" && len(value.([]interface{})) == 0 {
+				continue
+			}
 		}
 
-		tabsDivider := strings.Repeat("\t", depth-1)
 		tabsValues := strings.Repeat("\t", depth)
+		divider := strings.Repeat("=", depth)
 		if rec, ok := value.(map[string]interface{}); ok {
-			divider := strings.Repeat("=", depth)
-			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsDivider)
+
+			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsValues)
 			recursePrint(rec, depth+1, fulloutput)
+
+		} else if reflect.TypeOf(value).String() == "[]interface {}" {
+
+			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsValues)
+			fmt.Printf("%v[ \n", tabsValues)
+			for _ , v := range value.([]interface{}) {
+				recursePrint(v.(map[string]interface{}), depth+1, fulloutput)
+			}
+			fmt.Printf("%v] \n", tabsValues)
+
 		} else {
-			fmt.Printf("%[3]v %[1]s: %[2]v \n", key, value, tabsValues)
+
+			fmt.Printf("%[3]v  %[1]s: %[2]v \n", key, value, tabsValues)
+
 		}
 
 	}

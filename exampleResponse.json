@@ -17,7 +17,34 @@
    "service_date": "",
    "vatitems": [],
    "vat_context": "",
-   "lines": [],
+   "lines": [
+
+    {
+        "description": "string",
+        "lineitems": [
+        {
+        "amount": 0,
+        "amount_each": 0,
+        "amount_ex_vat": 0,
+        "description": "string",
+        "discount_amount": 0,
+        "discount_code": "string",
+        "discount_percentage": 0,
+        "ean": "string",
+        "line_number": "string",
+        "order_number": "string",
+        "quantity": 0,
+        "sku": "string",
+        "title": "string",
+        "unit_of_measurement": "string",
+        "vat_amount": 0,
+        "vat_code": "string",
+        "vat_percentage": 0
+        }
+        ]
+        }
+
+   ],
    "paymentmethod": "",
    "payment_auth_code": "",
    "payment_card_number": "",
