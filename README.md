@@ -1,7 +1,7 @@
 # Klippa assessment
 
 ## How to build
-go build cmd/klippa-assessment/main.go
+go build -o bin/ cmd/klippa-assessment/main.go
 
 ## How to use
 
@@ -15,8 +15,8 @@ go build cmd/klippa-assessment/main.go
 '-fulloutput=' get the full output of the api response, even the values that have no value will get printed. boolean type, so either true or false as values. default value is false. <br>
 
 #### cli exmples:
-./main -api=[api-key] -file=testDocs/testDocPDF.pdf -template=financial_full -save=save <br>
-./main -debug=true
+./bin/main -api=[api-key] -file=testDocs/testDocPDF.pdf -template=financial_full -save=save <br>
+./bin/main -debug=true
 
 #### docker
 to build the image: <br>
