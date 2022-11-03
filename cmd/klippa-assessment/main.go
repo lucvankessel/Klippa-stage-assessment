@@ -26,7 +26,7 @@ func main() {
 
 	if *debug {
 		// If debug is turned on we load from an exampleResponse.json, this is done to not use credits while testing the output functionality of this program.
-		file, _ := os.ReadFile("exampleResponse.json")
+		file, _ := os.ReadFile("testResponse/exampleResponse.json")
 		ROH.PrintResponse(file, 200, *fullOutput)
 	} else {
 		// if debug is turned off the program behaves like it should.
