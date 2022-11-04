@@ -9,7 +9,7 @@ import (
 
 // saves the response body of a request response to a given filename.
 func SaveResponse(bodyData []byte, requestconfig structs.RequestConfig) {
-	filename := requestconfig.SavefileName + ".json"
+	filename := "output/" +requestconfig.SavefileName + ".json"
 	
 	var jsonmap map[string]*json.RawMessage
 	if err := json.Unmarshal(bodyData, &jsonmap); err != nil {

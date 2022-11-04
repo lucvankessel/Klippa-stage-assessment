@@ -1,7 +1,7 @@
 # Klippa assessment
 
 ## How to build
-go build -o bin/ cmd/klippa-assessment/main.go
+go build cmd/klippa-assessment/main.go
 
 ## How to use
 
@@ -20,7 +20,6 @@ go build -o bin/ cmd/klippa-assessment/main.go
 
 #### docker
 to build the image: <br>
-docker build -t klippa-assessment .
 
 to run the image: <br>
 docker run klippa-assessment {any flags you want to add}
