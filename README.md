@@ -1,4 +1,5 @@
 # Klippa assessment
+This project is commissioned by Klippa as a internship assessment. The basic goals are to have cli application that can receive a few flags from the commandline and based on those send a request to their own API.
 
 ## How to build
 go build cmd/klippa-assessment/main.go
@@ -15,14 +16,8 @@ go build cmd/klippa-assessment/main.go
 '-fulloutput=' get the full output of the api response, even the values that have no value will get printed. boolean type, so either true or false as values. default value is false. <br>
 
 #### cli exmples:
-./bin/main -api=[api-key] -file=testDocs/testDocPDF.pdf -template=financial_full -save=save <br>
+./bin/main -api=[api-key] -file=some/path/to/file.pdf -template=financial_full -save=save -fulloutput=true <br>
 ./bin/main -debug=true
 
-#### docker
-to build the image: <br>
-
-to run the image: <br>
-docker run klippa-assessment {any flags you want to add}
-
-for example: docker run klippa-assessment -debug=true
-
+## docker:
+As seen in the repo, there is a Dockerfile. The cli version does work in there, but due to not getting volumes/mounts working to my satisfaction i decided to not have it documented.
