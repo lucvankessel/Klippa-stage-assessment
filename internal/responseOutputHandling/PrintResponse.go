@@ -39,7 +39,13 @@ func recursePrint(input map[string]interface{}, depth int, fulloutput bool) {
 			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsValues)
 			fmt.Printf("%v[ \n", tabsValues)
 			for _ , v := range value.([]interface{}) {
-				recursePrint(v.(map[string]interface{}), depth+1, fulloutput)
+				if (reflect.TypeOf(v).String() == "string" || reflect.TypeOf(v).String() == "int") {
+					fmt.Printf("%[2]v  %[1]v \n", v, tabsValues)
+				} else {
+					fmt.Print("\n")
+					recursePrint(v.(map[string]interface{}), depth+1, fulloutput)
+					fmt.Print("\n")
+				}
 			}
 			fmt.Printf("%v] \n", tabsValues)
 
