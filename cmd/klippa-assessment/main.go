@@ -29,9 +29,9 @@ func main() {
 		file, _ := os.ReadFile("testResponse/exampleResponse.json")
 		ROH.PrintResponse(file, 200, *fullOutput)
 	} else {
-		// if debug is turned off the program behaves like it should.
+		// Normal flow.
 	
-		// check for things wrong with the flags
+		// Check if the user did fill in the required flags.
 		if string(*filepath) == "[REQUIRED]" {
 			fmt.Println("Please give a file to parse, use -file=[path/to/filename.extension] to do so.")
 			os.Exit(0)
@@ -55,10 +55,10 @@ func main() {
 			os.Exit(0)
 		}
 
-		// give the request config to the ParseDocument function, this will execute the api call.
+		// give the request config to the ParseDocument function, this will execute the api call with all the config stored in the requestConfig struct.
 		response := klippaApi.ParseDocument(requestconfig)
 
-		// TODO: voor wat voor reden kan ik niet 2 keer op dezelfde response een readall doen, de laatste van de 2 zal een fout krijgen bij het lezen (namelijk dat deze leeg is.)
+		// Read the body.
 		bodyData, err := io.ReadAll(response.Body)
 		if err != nil {
 			fmt.Println("Save ReadAll error: ", err)
@@ -70,6 +70,7 @@ func main() {
 			ROH.SaveResponse(bodyData, *requestconfig)
 		}
 
+		// print the response to the console.
 		ROH.PrintResponse(bodyData, response.StatusCode, *fullOutput)
 
 	}

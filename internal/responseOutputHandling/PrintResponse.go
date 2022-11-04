@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// The output can look a lot like the default marshalindent output of a json string. 
+// But these functions give me a lot of flexibility on how i want to structure and show the output through filtering and indentation.
+
 // Because in some cases i dont know how deep the responses can go i needed to make a function that figures that out for me and prints everything that way.
 func recursePrint(input map[string]interface{}, depth int, fulloutput bool) {
 
@@ -20,37 +23,41 @@ func recursePrint(input map[string]interface{}, depth int, fulloutput bool) {
 		if !fulloutput {
 			if value == nil || value == "" || value == float64(0) || key == "raw_text" {
 				continue
+
 			}
 			// if the value is an empty array we continue
 			if reflect.TypeOf(value).String() == "[]interface {}" && len(value.([]interface{})) == 0 {
 				continue
+
 			}
 		}
 
 		tabsValues := strings.Repeat("\t", depth)
 		divider := strings.Repeat("=", depth)
-		if rec, ok := value.(map[string]interface{}); ok {
 
+		if rec, ok := value.(map[string]interface{}); ok {
 			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsValues)
 			recursePrint(rec, depth+1, fulloutput)
 
 		} else if reflect.TypeOf(value).String() == "[]interface {}" {
-
 			fmt.Printf("%[3]v%[1]s %[2]s %[1]s \n", divider, key, tabsValues)
 			fmt.Printf("%v[ \n", tabsValues)
+
 			for _ , v := range value.([]interface{}) {
+				// normal arrays cant go through the recurseprint again, so i need to print them here.
 				if (reflect.TypeOf(v).String() == "string" || reflect.TypeOf(v).String() == "int") {
 					fmt.Printf("%[2]v  %[1]v \n", v, tabsValues)
+
 				} else {
 					fmt.Print("\n")
 					recursePrint(v.(map[string]interface{}), depth+1, fulloutput)
 					fmt.Print("\n")
 				}
 			}
+
 			fmt.Printf("%v] \n", tabsValues)
 
 		} else {
-
 			fmt.Printf("%[3]v  %[1]s: %[2]v \n", key, value, tabsValues)
 
 		}
@@ -66,12 +73,14 @@ func PrintResponse(bodyData []byte, statusCode int, fulloutput bool) {
 	if err := json.Unmarshal(bodyData, &jsonmap); err != nil {
 		fmt.Println("print JsonUnmarshal error: ", err)
 		os.Exit(0)
+
 	}
 
 	fmt.Println("=== PARSE RESULTS ===")
 	fmt.Println("Status: ",	jsonmap["result"])
 
-	// Because i want to give the output some styling i decided to manually print the results instead of using marshalindent.
+
+	// i could have used the recurseprint function for all responses, but because the error responses all have uniformity and can be used in other parts of a project i decided to handle them in their own ways.
 	if statusCode == 200 {
 		var result200 structs.Result200
 		json.Unmarshal(bodyData, &result200)
@@ -97,7 +106,6 @@ func PrintResponse(bodyData []byte, statusCode int, fulloutput bool) {
 		}
 
 		fmt.Println("Request id: ", result400.Request_id)
-
 
 	} else if statusCode == 500 {
 		var result500 structs.Result500

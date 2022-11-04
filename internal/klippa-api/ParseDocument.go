@@ -31,7 +31,7 @@ func ParseDocument( requestconfig *structs.RequestConfig ) (*http.Response) {
 	extraction.Write([]byte(requestconfig.ExtractionType))
 	writer.Close()
 
-	// Creating a request and giving it some headers that are needed.
+	// Creating a request and giving it the headers that are needed.
 	r,_ := http.NewRequest(
 		"POST",
 		fmt.Sprintf("https://custom-ocr.klippa.com/api/v1/parseDocument/%s", requestconfig.Template),
